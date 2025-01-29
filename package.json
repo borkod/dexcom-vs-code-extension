@@ -1,0 +1,79 @@
+{
+  "name": "dexcom-vs-code-extension",
+  "displayName": "Dexcom Status Bar",
+  "description": "Visual Studio Code extension that retrieves the most recent blood glucose reading from Dexcom web services and displays it in your Visual Studio Code status bar.",
+  "icon": "images/dexcom-vs-code-logo.png",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borkod/dexcom-vs-code-extension"
+  },
+  "homepage": "https://github.com/borkod/dexcom-vs-code-extension",
+  "bugs": {
+    "url": "https://github.com/borkod/dexcom-vs-code-extension/issues"
+  },
+  "galleryBanner": {
+    "color": "#000000",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "pricing": "Free",
+  "publisher": "borkod",
+  "keywords": [
+    "Dexcom",
+    "blood glucose",
+    "diabetes",
+    "status bar"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "sponsor": {
+    "url": "https://github.com/sponsors/borkod"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "dexcom-vs-code-extension.update-and-show-date",
+        "title": "Dexcom: Update and Show Last Entry Date"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.16.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "axios": "^1.7.9"
+  }
+}
