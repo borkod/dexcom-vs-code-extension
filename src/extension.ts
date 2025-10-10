@@ -176,17 +176,21 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 		server: "eu",
 	});
 
+	let latestGlucoseValue: GlucoseMeasurement = {
+		mgdl: 0,
+		mmol: 0,
+		timestamp: "",
+		trend: "",
+		isHigh: false,
+		isLow: false,
+	}
 	client.getEstimatedGlucoseValues()
 		.then((response) => {
 			// Get the latest glucose value
-			let latestGlucoseValue: GlucoseMeasurement = {
-				mgdl: response[0].mgdl,
-				mmol: response[0].mmol,
-				timestamp: response[0].timestamp,
-				trend: response[0].trend,
-				isHigh: false,
-				isLow: false,
-			}
+			latestGlucoseValue.mgdl = response[0].mgdl;
+			latestGlucoseValue.mmol = response[0].mmol;
+			latestGlucoseValue.timestamp = response[0].timestamp;
+			latestGlucoseValue.trend = response[0].trend;
 				
 			// Log the latest glucose value
 			logOutputChannel.info(`Latest glucose value: ${latestGlucoseValue.mgdl} mg/dL`);
@@ -197,4 +201,27 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 				latestGlucoseValue.isHigh = true;
 			}
 		});
+		return latestGlucoseValue;
+}
+
+// Function to get the trend icon based on the direction
+function getTrendIcon(direction: string): string {
+	switch (direction) {
+		case "Flat":
+			return '→';
+		case "SingleUp":
+			return '↑';
+		case "DoubleUp":
+			return '↑';
+		case "SingleDown":
+			return '↓';
+		case "DoubleDown":
+			return '↓';
+		case "FortyFiveUp":
+			return '↗';
+		case "FortyFiveDown":
+			return '↘';
+		default:
+			return '??';
+	}
 }
