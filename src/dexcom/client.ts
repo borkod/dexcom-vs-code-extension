@@ -33,9 +33,9 @@ export class DexcomClient {
         password: undefined,
         server: undefined,
       }) {
-        if (typeof username === "undefined") throw new Error("Must provide username");
-        if (typeof password === "undefined") throw new Error("Must provide password");
-        if (typeof server === "undefined") throw new Error("Must provide server");
+        if (typeof username === "undefined") { throw new Error("Must provide username"); }
+        if (typeof password === "undefined") { throw new Error("Must provide password"); }
+        if (typeof server === "undefined") { throw new Error("Must provide server"); }
         if (!DexcomClient.DEXCOM_SERVERS.includes(server)) {
           throw new Error(`Invalid server. Valid servers: ${DexcomClient.DEXCOM_SERVERS.join(", ")}`);
         }
@@ -154,7 +154,7 @@ export class DexcomClient {
           mgdl: entry.Value,
           trend: trend.toLowerCase(),
           timestamp: new Date(extractNumber(entry.WT) as number).toISOString(),
-        }
+        };
       });
     } catch(err) {
       throw new Error(`Request failed with error: ${err}`);

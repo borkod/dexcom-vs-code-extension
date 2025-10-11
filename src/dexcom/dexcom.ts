@@ -52,9 +52,22 @@ async function fetch (opts: Opts): Promise<GlucoseMeasurement> {
   
     try {
         const response = await axios.post(url, body, { headers, validateStatus: () => true });
-        return response;
+        
+        // Extract the glucose data from the response
+        const glucoseArray: GlucoseItem[] = response.data;
+        if (glucoseArray && glucoseArray.length > 0) {
+            const latestGlucose: GlucoseMeasurement = {
+                ...glucoseArray[0],
+                ValueInMgPerDl: glucoseArray[0].Value,
+                isHigh: glucoseArray[0].Value > 180,
+                isLow: glucoseArray[0].Value < 70
+            };
+            return latestGlucose;
+        } else {
+            throw new Error("No glucose data found in response");
+        }
     } catch (err) {
-        console.log("Cannot authorize account: ", err);
+        console.log("Cannot fetch glucose data: ", err);
         throw err;
     }
   }
@@ -104,7 +117,7 @@ async function authorize (opts: Opts): Promise<any | null> {
                       , 'Accept': Defaults.accept };
         
         try {
-            const response = await axios.post(url, body, { headers, validateStatus: () => true });
+            const response: {} = await axios.post(url, body, { headers, validateStatus: () => true });
             return response;
         } catch (err) {
             console.log("Cannot authorize account: ", err);

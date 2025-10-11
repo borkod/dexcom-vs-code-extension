@@ -22,7 +22,7 @@ let currentResult: GlucoseMeasurement = {
 	trend: "",
 	isHigh: false,
 	isLow: false,
-}
+};
 
 // This method is called when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -155,13 +155,14 @@ function showWarning(): void {
 		vscode.window.showWarningMessage(`High blood glucose!`);
 	}
 
-	if (currentResult.mgdl > 0 && (currentResult.MeasurementColor === 2 || currentResult.MeasurementColor === 3) && myConfig.glucoseWarningBackgroundEnabled) {
-		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-	} else if (currentResult.mgdl > 0 && currentResult.MeasurementColor === 4 && myConfig.glucoseWarningBackgroundEnabled) {
-		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-	} else {
-		myStatusBarItem.backgroundColor = undefined;
-	}
+	// TODO: Come back to this. It should be like nightscout implementation I think
+	// if (currentResult.mgdl > 0 && (currentResult.MeasurementColor === 2 || currentResult.MeasurementColor === 3) && myConfig.glucoseWarningBackgroundEnabled) {
+	// 	myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+	// } else if (currentResult.mgdl > 0 && currentResult.MeasurementColor === 4 && myConfig.glucoseWarningBackgroundEnabled) {
+	// 	myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+	// } else {
+	// 	myStatusBarItem.backgroundColor = undefined;
+	// }
 }
 
 // Async function to perform the GET request
@@ -183,7 +184,7 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 		trend: "",
 		isHigh: false,
 		isLow: false,
-	}
+	};
 	client.getEstimatedGlucoseValues()
 		.then((response) => {
 			// Get the latest glucose value
