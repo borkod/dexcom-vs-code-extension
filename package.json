@@ -44,7 +44,66 @@
         "command": "dexcom-vs-code-extension.update-and-show-date",
         "title": "Dexcom: Update and Show Last Entry Date"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Dexcom Status Bar",
+      "properties": {
+        "dexcom-vs-code-extension.dexcomUsername": {
+          "type": "string",
+          "scope": "machine",
+          "default": "",
+          "markdownDescription": "Dexcom Login Email (e.g. `mail@example.com`)"
+        },
+        "dexcom-vs-code-extension.dexcomPassword": {
+          "type": "string",
+          "scope": "machine",
+          "default": "",
+          "markdownDescription": "Dexcom Login Password"
+        },
+        "dexcom-vs-code-extension.glucoseUnits": {
+          "type": "string",
+          "scope": "machine",
+          "enum": [
+            "millimolar",
+            "milligrams"
+          ],
+          "markdownEnumDescriptions": [
+            "mmol/L (Millimoles Per Litre)",
+            "mg/dL (Milligrams per 100 millilitres)"
+          ],
+          "enumItemLabels": [
+            "mmol/L",
+            "mg/dL"
+          ],
+          "default": "milligrams",
+          "description": "Blood glucose units"
+        },
+        "dexcom-vs-code-extension.high-glucose-warning-message.enabled": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Enable high glucose warning pop-up message"
+        },
+        "dexcom-vs-code-extension.low-glucose-warning-message.enabled": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Enable low glucose warning pop-up message"
+        },
+        "dexcom-vs-code-extension.glucose-warning-background-color.enabled": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Enable high or low glucose warning background color"
+        },
+        "dexcom-vs-code-extension.updateInterval": {
+          "type": "number",
+          "scope": "machine",
+          "default": 10,
+          "markdownDescription": "Time interval (in minutes) between queries for updated data"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

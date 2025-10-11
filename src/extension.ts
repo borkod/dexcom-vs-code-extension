@@ -205,6 +205,29 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 		return latestGlucoseValue;
 }
 
+function updateConfig(): dexcomConfig
+{
+    // Get the configuration object for the extension
+    const config = vscode.workspace.getConfiguration('librelinkup-vs-code-extension');
+    logOutputChannel.info('Updating configuration.');
+	return {
+        glucoseUnits: config.get<string>('glucoseUnits', 'milligrams'),
+		dexcomUsername: config.get<string>('dexcomUsername', ''),
+		dexcomPassword: config.get<string>('dexcomPassword', ''),
+		//linkUpRegion: config.get<string>('linkUpRegion', ''),
+		//linkUpConnection: config.get<string>('linkUpConnection', ''),
+        lowGlucoseWarningEnabled: config.get<boolean>('low-glucose-warning-message.enabled', true),
+		lowGlucoseWarningBackgroundEnabled: config.get<boolean>('low-glucose-warning-background-color.enabled', true),
+		highGlucoseWarningEnabled: config.get<boolean>('high-glucose-warning-message.enabled', true),
+		highGlucoseWarningBackgroundEnabled: config.get<boolean>('high-glucose-warning-background-color.enabled', true),
+		lowGlucoseThreshold: config.get<number>('low-glucose-warning.value', 70),
+		highGlucoseThreshold: config.get<number>('high-glucose-warning.value', 180),
+		glucoseWarningBackgroundEnabled: config.get<boolean>('glucose-warning-background-color.enabled', true),
+	    updateInterval: config.get<number>('updateInterval', 10),
+	};
+}
+
+
 // Function to get the trend icon based on the direction
 function getTrendIcon(direction: string): string {
 	switch (direction) {
