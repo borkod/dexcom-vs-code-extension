@@ -8,8 +8,6 @@ If you are not a Dexcom CGM user and use a different CGM, you may be interested 
 
 ## Features
 
-## Features
-
 - Periodically retrieves the most recent blood glucose reading from your Dexcom and displays it in your Visual Studio Code Status bar
 - Provides visual indicator of your blood glucose levels trend
 - Provides `Dexcom: Update and Show Last Entry Date` command to manually trigger an update and display the date and time of the latest reading in your Dexcom sensor
@@ -17,6 +15,12 @@ If you are not a Dexcom CGM user and use a different CGM, you may be interested 
 - Low and high blood glucose level warnings
 - Status bar background color change on low or high blood glucose level warnings
 - Fully configurable settings
+
+## Requirements
+
+You need [Dexcom CGM](https://www.dexcom.com/) App or [Dexcom Follow](https://www.dexcom.com/dexcom-follow) App account.
+
+If you have an Android smartphone, you can download the apps from the Google Play store.  If you have an iPhone, you can download the apps from the App Store.
 
 ## Extension Settings
 
