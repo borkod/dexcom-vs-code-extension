@@ -3,7 +3,7 @@
   "displayName": "Dexcom Status Bar",
   "description": "Visual Studio Code extension that retrieves the most recent blood glucose reading from Dexcom web services and displays it in your Visual Studio Code status bar.",
   "icon": "images/dexcom-vs-code-logo.png",
-  "version": "0.0.1",
+  "version": "0.8.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -94,6 +94,12 @@
           "default": true,
           "description": "Enable high glucose warning pop-up message"
         },
+        "dexcom-vs-code-extension.high-glucose-warning.value": {
+          "type": "number",
+          "scope": "machine",
+          "default": 180,
+          "description": "High glucose warning value (in mg/dL)"
+        },
         "dexcom-vs-code-extension.low-glucose-warning-message.enabled": {
           "type": "boolean",
           "scope": "machine",
@@ -105,6 +111,12 @@
           "scope": "machine",
           "default": true,
           "description": "Enable high or low glucose warning background color"
+        },
+        "dexcom-vs-code-extension.low-glucose-warning.value": {
+          "type": "number",
+          "scope": "machine",
+          "default": 70,
+          "description": "Low glucose warning value (in mg/dL)"
         },
         "dexcom-vs-code-extension.updateInterval": {
           "type": "number",

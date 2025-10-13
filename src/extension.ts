@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import {dexcomConfig, updateConfig} from "./dexcom/config";
 import { DexcomClient } from './dexcom/client';
 import { GlucoseMeasurement } from './dexcom/types';
+import { log } from 'console';
 
 let myStatusBarItem: vscode.StatusBarItem;
 
@@ -14,6 +15,11 @@ let updateTimeout: NodeJS.Timeout;
 let logOutputChannel : vscode.LogOutputChannel;
 
 let myConfig: dexcomConfig;
+
+// Multipliers for the low and high glucose thresholds
+let lowGlucoseMultiplier = 0.85;
+let highGlucoseMultiplier = 1.3;
+
 
 let currentResult: GlucoseMeasurement = {
 	mgdl: 0,
@@ -37,8 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('dexcom-vs-code-extension');
     logOutputChannel.info('Updating configuration.');
 	myConfig = updateConfig(config);
-	logOutputChannel.info('Configuration updated.'); //TODO: Remove
-	logOutputChannel.info(`Current configuration: ${JSON.stringify(myConfig)}`); //TODO: Remove
 
     // Listening to configuration changes
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
@@ -114,7 +118,7 @@ async function updateStatusBarItem(): Promise<void> {
 				let sgv = currentResult.mgdl;
 				let units = "mg/dL";
 				if (myConfig.glucoseUnits === 'millimolar') {
-					sgv = currentResult.mgdl / 18;
+					sgv = currentResult.mmol;
 					units = "mmol/L";
 				}
 				// Get the trend icon based on the direction
@@ -157,14 +161,17 @@ function showWarning(): void {
 		vscode.window.showWarningMessage(`High blood glucose!`);
 	}
 
-	// TODO: Come back to this. It should be like nightscout implementation I think
-	// if (currentResult.mgdl > 0 && (currentResult.MeasurementColor === 2 || currentResult.MeasurementColor === 3) && myConfig.glucoseWarningBackgroundEnabled) {
-	// 	myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-	// } else if (currentResult.mgdl > 0 && currentResult.MeasurementColor === 4 && myConfig.glucoseWarningBackgroundEnabled) {
-	// 	myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-	// } else {
-	// 	myStatusBarItem.backgroundColor = undefined;
-	// }
+	if (currentResult.mgdl > 0 && currentResult.mgdl < myConfig.lowGlucoseThreshold && currentResult.mgdl > lowGlucoseMultiplier*myConfig.lowGlucoseThreshold && myConfig.lowGlucoseWarningBackgroundEnabled) {
+		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+	} else if (currentResult.mgdl > 0 && currentResult.mgdl < lowGlucoseMultiplier*myConfig.lowGlucoseThreshold && myConfig.lowGlucoseWarningBackgroundEnabled) {
+		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+	} else if (currentResult.mgdl > 0 && currentResult.mgdl > myConfig.highGlucoseThreshold && currentResult.mgdl < highGlucoseMultiplier*myConfig.highGlucoseThreshold && myConfig.highGlucoseWarningBackgroundEnabled) {
+		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+	} else if (currentResult.mgdl > 0 && currentResult.mgdl > highGlucoseMultiplier*myConfig.highGlucoseThreshold && myConfig.highGlucoseWarningBackgroundEnabled) {
+		myStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+	} else {
+		myStatusBarItem.backgroundColor = undefined;
+	}
 }
 
 // Async function to perform the GET request
@@ -191,12 +198,29 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 		isLow: false,
 	};
 
-	const response = await client.getEstimatedGlucoseValues(); // TODO: Should check for null response?
+	const response = await client.getEstimatedGlucoseValues();
+	
+	// Check for null/undefined response
+	if (!response) {
+		throw new Error("No response received from Dexcom API");
+	}
+	
+	// Check for empty array
+	if (!Array.isArray(response) || response.length === 0) {
+		throw new Error("No glucose data available from Dexcom API");
+	}
+	
+	// Check if the first entry has required properties
+	const firstEntry = response[0];
+	if (!firstEntry || typeof firstEntry.mgdl !== 'number' || typeof firstEntry.mmol !== 'number') {
+		throw new Error("Invalid glucose data structure received from Dexcom API");
+	}
+	
 	// Get the latest glucose value
-	latestGlucoseValue.mgdl = response[0].mgdl;
-	latestGlucoseValue.mmol = response[0].mmol;
-	latestGlucoseValue.timestamp = response[0].timestamp;
-	latestGlucoseValue.trend = response[0].trend;
+	latestGlucoseValue.mgdl = firstEntry.mgdl;
+	latestGlucoseValue.mmol = firstEntry.mmol;
+	latestGlucoseValue.timestamp = firstEntry.timestamp;
+	latestGlucoseValue.trend = firstEntry.trend;
 
 	// Log the latest glucose value
 	logOutputChannel.info(`Latest glucose value: ${latestGlucoseValue.mgdl} mg/dL`);
@@ -206,8 +230,6 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 	} else if (latestGlucoseValue.mgdl > myConfig.highGlucoseThreshold) {
 		latestGlucoseValue.isHigh = true;
 	}
-	logOutputChannel.info('Fetched latest glucose value.');
-	logOutputChannel.info(`Latest glucose value details: ${JSON.stringify(latestGlucoseValue)}`);
 	return latestGlucoseValue;
 }
 
@@ -219,14 +241,14 @@ function getTrendIcon(direction: string): string {
 		case "singleup":
 			return '↑';
 		case "doubleup":
-			return '↑';
+			return '↑↑';
 		case "singledown":
 			return '↓';
 		case "doubledown":
-			return '↓';
-		case "fortyFiveup":
+			return '↓↓';
+		case "fortyfiveup":
 			return '↗';
-		case "fortyFivedown":
+		case "fortyfivedown":
 			return '↘';
 		default:
 			return '??';

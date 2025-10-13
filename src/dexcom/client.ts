@@ -54,6 +54,7 @@ export class DexcomClient {
   // yourself.
   async getAccountId(): Promise<string> {
     try {
+      this.outputChannel.info("Fetching accountId for user: " + this.username);
       const result = await fetch(this.apiUrl("General/AuthenticatePublisherAccount"), {
         method: "POST",
         headers: {
@@ -65,27 +66,17 @@ export class DexcomClient {
           password: this.password,
         }),
       });
-      
-      this.outputChannel.info("URL:");
-      this.outputChannel?.info(this.apiUrl("General/AuthenticatePublisherAccount"));
-      this.outputChannel?.info("Body:");
-      this.outputChannel?.info(JSON.stringify({
-          applicationId: DexcomClient.APPLICATION_ID,
-          accountName: this.username,
-          password: this.password,
-        }));
 
       const data = await result.json();
 
-      this.outputChannel?.info("accountId fetch result:");
-      this.outputChannel?.info(JSON.stringify(data));
-
       if (result.status !== 200) {
+        this.outputChannel.error("Dexcom server responded with status: " + result.status + ", data: " + JSON.stringify(data));
         throw new Error(`Dexcom server responded with status: ${result.status}, data: ${JSON.stringify(data)}`);
       }
 
       return data as string;
     } catch(err) {
+      this.outputChannel.error("Request failed with error: " + err);
       throw new Error(`Request failed with error: ${err}`);
     }
   }
@@ -97,6 +88,7 @@ export class DexcomClient {
     try {
       const accountId = await this.getAccountId();
 
+      this.outputChannel.info("Fetching sessionId for accountId: " + accountId);
       const result = await fetch(this.apiUrl("General/LoginPublisherAccountById"), {
         method: "POST",
         headers: {
@@ -109,26 +101,16 @@ export class DexcomClient {
         }),
       });
 
-      this.outputChannel?.info("URL:");
-      this.outputChannel?.info(this.apiUrl("General/LoginPublisherAccountById"));
-      this.outputChannel?.info("Body:");
-      this.outputChannel?.info(JSON.stringify({
-          applicationId: DexcomClient.APPLICATION_ID,
-          accountId: accountId,
-          password: this.password,
-        }));
-
       const data = await result.json();
 
-      this.outputChannel?.info("session fetch result:");
-      this.outputChannel?.info(JSON.stringify(data));
-
       if (result.status !== 200) {
+        this.outputChannel.error("Dexcom server responded with status: " + result.status + ", data: " + JSON.stringify(data));
         throw new Error(`Dexcom server responded with status: ${result.status}, data: ${JSON.stringify(data)}`);
       }
 
       return data as string;
     } catch(err) {
+      this.outputChannel.error("Request failed with error: " + err);
       throw new Error(`Request failed with error: ${err}`);
     }
   }
@@ -146,6 +128,8 @@ export class DexcomClient {
     try {
       const sessionId = await this.getSessionId();
 
+      this.outputChannel.info(`Fetching latest glucose values for sessionId: ${sessionId}`);
+
       const result = await fetch(this.apiUrl("Publisher/ReadPublisherLatestGlucoseValues"), {
         method: "POST",
         headers: {
@@ -161,6 +145,7 @@ export class DexcomClient {
       const data = await result.json() as DexcomEntry[];
 
       if (result.status !== 200) {
+        this.outputChannel.error("Dexcom server responded with status: " + result.status + ", data: " + JSON.stringify(data));
         throw new Error(`Dexcom server responded with status: ${result.status}, data: ${JSON.stringify(data)}`);
       }
 
@@ -184,6 +169,7 @@ export class DexcomClient {
         };
       });
     } catch(err) {
+      this.outputChannel.error("Request failed with error: " + err);
       throw new Error(`Request failed with error: ${err}`);
     }
   }
