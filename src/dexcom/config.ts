@@ -1,8 +1,9 @@
 import { WorkspaceConfiguration } from "vscode";
+import { DexcomServer } from "./types";
 
 // Configuration for the extension
 export interface dexcomConfig {
-	//dexcomRegion: string;
+	dexcomRegion: DexcomServer;
 	dexcomUsername: string;
 	dexcomPassword: string;
 	glucoseUnits: string;
@@ -22,14 +23,19 @@ export function updateConfig(config: WorkspaceConfiguration): dexcomConfig
         glucoseUnits: config.get<string>('glucoseUnits', 'milligrams'),
 		dexcomUsername: config.get<string>('dexcomUsername', ''),
 		dexcomPassword: config.get<string>('dexcomPassword', ''),
-		//dexcomRegion: config.get<string>('dexcomRegion', ''),
-		lowGlucoseWarningEnabled: config.get<boolean>('low-glucose-warning-message.enabled', true),
-        lowGlucoseWarningBackgroundEnabled: config.get<boolean>('low-glucose-warning-background-color.enabled', true),
-	    highGlucoseWarningEnabled: config.get<boolean>('high-glucose-warning-message.enabled', true),
-        highGlucoseWarningBackgroundEnabled: config.get<boolean>('high-glucose-warning-background-color.enabled', true),
-        lowGlucoseThreshold: config.get<number>('low-glucose-threshold', 70),
+		dexcomRegion: getServer(config.get<string>('dexcomRegion', '')),
+		//linkUpConnection: config.get<string>('linkUpConnection', ''),
+        lowGlucoseWarningEnabled: config.get<boolean>('low-glucose-warning-message.enabled', true),
+		lowGlucoseWarningBackgroundEnabled: config.get<boolean>('low-glucose-warning-background-color.enabled', true),
+		highGlucoseWarningEnabled: config.get<boolean>('high-glucose-warning-message.enabled', true),
+		highGlucoseWarningBackgroundEnabled: config.get<boolean>('high-glucose-warning-background-color.enabled', true),
+		lowGlucoseThreshold: config.get<number>('low-glucose-warning.value', 70),
+		highGlucoseThreshold: config.get<number>('high-glucose-warning.value', 180),
 		glucoseWarningBackgroundEnabled: config.get<boolean>('glucose-warning-background-color.enabled', true),
-        highGlucoseThreshold: config.get<number>('high-glucose-threshold', 180),
-        updateInterval: config.get<number>('updateInterval', 10),
+	    updateInterval: config.get<number>('updateInterval', 10),
 	};
+}
+
+function getServer(region: string): DexcomServer {
+    return region === "us" ? "us" : "eu";
 }

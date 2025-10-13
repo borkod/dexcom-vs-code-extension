@@ -60,6 +60,16 @@
           "default": "",
           "markdownDescription": "Dexcom Login Password"
         },
+        "dexcom-vs-code-extension.dexcomRegion": {
+          "type": "string",
+          "scope": "machine",
+          "enum": [
+            "eu",
+            "us"
+          ],
+          "default": "us",
+          "markdownDescription": "Your region. Used to determine the correct Dexcom service (Possible values: eu, us). If you are in the US, use 'us'. Any other country (e.g. Canada) should use 'eu'."
+        },
         "dexcom-vs-code-extension.glucoseUnits": {
           "type": "string",
           "scope": "machine",

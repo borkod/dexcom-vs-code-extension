@@ -28,7 +28,7 @@ let currentResult: GlucoseMeasurement = {
 export function activate(context: vscode.ExtensionContext) {
 
     // Create a new output channel for logging
-	logOutputChannel = vscode.window.createOutputChannel("Dexcom CGM Output", {log: true});
+	logOutputChannel = vscode.window.createOutputChannel("Dexcom CGM Extension Output", {log: true});
 
     logOutputChannel.info('Extension "dexcom-status-bar" is now active!');
 
@@ -37,6 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('dexcom-vs-code-extension');
     logOutputChannel.info('Updating configuration.');
 	myConfig = updateConfig(config);
+	logOutputChannel.info('Configuration updated.'); //TODO: Remove
+	logOutputChannel.info(`Current configuration: ${JSON.stringify(myConfig)}`); //TODO: Remove
 
     // Listening to configuration changes
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
@@ -94,7 +96,7 @@ function scheduleUpdate() {
 function updateStatusBarItemAndShowDate(): void {
 	updateStatusBarItem().then(() => {
 		if (currentResult.mmol > 0) {
-			vscode.window.showInformationMessage(`LibreLinkUp CGM last entry at: ${currentResult.timestamp}`);
+			vscode.window.showInformationMessage(`Dexcom CGM last entry at: ${currentResult.timestamp}`);
 		} else {
 			vscode.window.showInformationMessage(`No data available.`);
 		}
@@ -169,13 +171,16 @@ function showWarning(): void {
 async function fetchData(): Promise<GlucoseMeasurement> {
 	// initialization
 	const client = new DexcomClient({
-		username: "dexcom share username",
-		password: "dexcom share password",
+		username: myConfig.dexcomUsername,
+		password: myConfig.dexcomPassword,
 		// This server needs to be either "us" or "eu. If you're in the US, the server
 		// should be "us". Any other country outside of the US (eg. Canada) is
 		// classified as "eu" by Dexcom
-		server: "eu",
+		server: myConfig.dexcomRegion,
 	});
+
+	logOutputChannel.info('Fetching latest glucose value...');
+	logOutputChannel.info('Using client configuration: ' + JSON.stringify(client));
 
 	let latestGlucoseValue: GlucoseMeasurement = {
 		mgdl: 0,
@@ -185,65 +190,43 @@ async function fetchData(): Promise<GlucoseMeasurement> {
 		isHigh: false,
 		isLow: false,
 	};
-	client.getEstimatedGlucoseValues()
-		.then((response) => {
-			// Get the latest glucose value
-			latestGlucoseValue.mgdl = response[0].mgdl;
-			latestGlucoseValue.mmol = response[0].mmol;
-			latestGlucoseValue.timestamp = response[0].timestamp;
-			latestGlucoseValue.trend = response[0].trend;
-				
-			// Log the latest glucose value
-			logOutputChannel.info(`Latest glucose value: ${latestGlucoseValue.mgdl} mg/dL`);
-			// Return the latest glucose value
-			if (latestGlucoseValue.mgdl < myConfig.lowGlucoseThreshold) {
-				latestGlucoseValue.isLow = true;
-			} else if (latestGlucoseValue.mgdl > 180) {
-				latestGlucoseValue.isHigh = true;
-			}
-		});
-		return latestGlucoseValue;
-}
 
-function updateConfig(): dexcomConfig
-{
-    // Get the configuration object for the extension
-    const config = vscode.workspace.getConfiguration('librelinkup-vs-code-extension');
-    logOutputChannel.info('Updating configuration.');
-	return {
-        glucoseUnits: config.get<string>('glucoseUnits', 'milligrams'),
-		dexcomUsername: config.get<string>('dexcomUsername', ''),
-		dexcomPassword: config.get<string>('dexcomPassword', ''),
-		//linkUpRegion: config.get<string>('linkUpRegion', ''),
-		//linkUpConnection: config.get<string>('linkUpConnection', ''),
-        lowGlucoseWarningEnabled: config.get<boolean>('low-glucose-warning-message.enabled', true),
-		lowGlucoseWarningBackgroundEnabled: config.get<boolean>('low-glucose-warning-background-color.enabled', true),
-		highGlucoseWarningEnabled: config.get<boolean>('high-glucose-warning-message.enabled', true),
-		highGlucoseWarningBackgroundEnabled: config.get<boolean>('high-glucose-warning-background-color.enabled', true),
-		lowGlucoseThreshold: config.get<number>('low-glucose-warning.value', 70),
-		highGlucoseThreshold: config.get<number>('high-glucose-warning.value', 180),
-		glucoseWarningBackgroundEnabled: config.get<boolean>('glucose-warning-background-color.enabled', true),
-	    updateInterval: config.get<number>('updateInterval', 10),
-	};
-}
+	const response = await client.getEstimatedGlucoseValues(); // TODO: Should check for null response?
+	// Get the latest glucose value
+	latestGlucoseValue.mgdl = response[0].mgdl;
+	latestGlucoseValue.mmol = response[0].mmol;
+	latestGlucoseValue.timestamp = response[0].timestamp;
+	latestGlucoseValue.trend = response[0].trend;
 
+	// Log the latest glucose value
+	logOutputChannel.info(`Latest glucose value: ${latestGlucoseValue.mgdl} mg/dL`);
+	// Return the latest glucose value
+	if (latestGlucoseValue.mgdl < myConfig.lowGlucoseThreshold) {
+		latestGlucoseValue.isLow = true;
+	} else if (latestGlucoseValue.mgdl > myConfig.highGlucoseThreshold) {
+		latestGlucoseValue.isHigh = true;
+	}
+	logOutputChannel.info('Fetched latest glucose value.');
+	logOutputChannel.info(`Latest glucose value details: ${JSON.stringify(latestGlucoseValue)}`);
+	return latestGlucoseValue;
+}
 
 // Function to get the trend icon based on the direction
 function getTrendIcon(direction: string): string {
-	switch (direction) {
-		case "Flat":
+	switch (direction.toLowerCase()) {
+		case "flat":
 			return '→';
-		case "SingleUp":
+		case "singleup":
 			return '↑';
-		case "DoubleUp":
+		case "doubleup":
 			return '↑';
-		case "SingleDown":
+		case "singledown":
 			return '↓';
-		case "DoubleDown":
+		case "doubledown":
 			return '↓';
-		case "FortyFiveUp":
+		case "fortyFiveup":
 			return '↗';
-		case "FortyFiveDown":
+		case "fortyFivedown":
 			return '↘';
 		default:
 			return '??';

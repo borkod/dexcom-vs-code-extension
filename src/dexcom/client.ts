@@ -6,18 +6,20 @@ import type {
     ConfigurationProps,
 } from "./types";
 import {Trend} from "./types";
+import * as vscode from 'vscode';
 
 
 export class DexcomClient {
     private username: string;
     private password: string;
     private server: DexcomServer;
+    private outputChannel: vscode.LogOutputChannel;
   
     // This seems to be a blessed ID the Dexcom Share app uses. This is in no way
     // special to this library, is it used in several (nightscout, dexcomedy,
     // etc).
     static get APPLICATION_ID() {
-      return "d89443d2-327c-4a6f-89e5-496bbb0317db";
+      return "d8665ade-9673-4e27-9ff6-92db4ce13d13";
     }
   
     private static get DEXCOM_SERVERS() {
@@ -27,7 +29,7 @@ export class DexcomClient {
     constructor({
         username,
         password,
-        server
+        server,
       }: ConfigurationProps = {
         username: undefined,
         password: undefined,
@@ -43,6 +45,7 @@ export class DexcomClient {
         this.username = username;
         this.password = password;
         this.server = server;
+        this.outputChannel = vscode.window.createOutputChannel("Dexcom Client Output", {log: true});
       }
 
   // Returns the Dexcom account_id. This is needed as apart of the login flow,
@@ -62,14 +65,26 @@ export class DexcomClient {
           password: this.password,
         }),
       });
+      
+      this.outputChannel.info("URL:");
+      this.outputChannel?.info(this.apiUrl("General/AuthenticatePublisherAccount"));
+      this.outputChannel?.info("Body:");
+      this.outputChannel?.info(JSON.stringify({
+          applicationId: DexcomClient.APPLICATION_ID,
+          accountName: this.username,
+          password: this.password,
+        }));
 
       const data = await result.json();
+
+      this.outputChannel?.info("accountId fetch result:");
+      this.outputChannel?.info(JSON.stringify(data));
 
       if (result.status !== 200) {
         throw new Error(`Dexcom server responded with status: ${result.status}, data: ${JSON.stringify(data)}`);
       }
 
-      return JSON.stringify(data);
+      return data as string;
     } catch(err) {
       throw new Error(`Request failed with error: ${err}`);
     }
@@ -94,13 +109,25 @@ export class DexcomClient {
         }),
       });
 
+      this.outputChannel?.info("URL:");
+      this.outputChannel?.info(this.apiUrl("General/LoginPublisherAccountById"));
+      this.outputChannel?.info("Body:");
+      this.outputChannel?.info(JSON.stringify({
+          applicationId: DexcomClient.APPLICATION_ID,
+          accountId: accountId,
+          password: this.password,
+        }));
+
       const data = await result.json();
+
+      this.outputChannel?.info("session fetch result:");
+      this.outputChannel?.info(JSON.stringify(data));
 
       if (result.status !== 200) {
         throw new Error(`Dexcom server responded with status: ${result.status}, data: ${JSON.stringify(data)}`);
       }
 
-      return JSON.stringify(data);
+      return data as string;
     } catch(err) {
       throw new Error(`Request failed with error: ${err}`);
     }
