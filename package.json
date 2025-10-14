@@ -3,7 +3,7 @@
   "displayName": "Dexcom CGM Status Bar",
   "description": "Visual Studio Code extension that retrieves the most recent blood glucose reading from Dexcom web services and displays it in your Visual Studio Code status bar.",
   "icon": "images/dexcom-vs-code-logo.png",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "license": "MIT",
   "repository": {
     "type": "git",

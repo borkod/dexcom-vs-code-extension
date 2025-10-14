@@ -40,13 +40,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Set the configuration for the extension
 	// Get the configuration object for the extension
-    const config = vscode.workspace.getConfiguration('dexcom-vs-code-extension');
+    let config = vscode.workspace.getConfiguration('dexcom-vs-code-extension');
     logOutputChannel.info('Updating configuration.');
 	myConfig = updateConfig(config);
 
     // Listening to configuration changes
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
 		if (e.affectsConfiguration('dexcom-vs-code-extension')) {
+			config = vscode.workspace.getConfiguration('dexcom-vs-code-extension');
 			myConfig = updateConfig(config);
 			updateStatusBarItem();
 		}
